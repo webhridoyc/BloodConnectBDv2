@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ const RegisterFormSchema = z.object({
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match.",
-  path: ["confirmPassword"], // Apply error to confirmPassword field
+  path: ["confirmPassword"], 
 });
 
 type RegisterFormValues = z.infer<typeof RegisterFormSchema>;
@@ -48,8 +48,9 @@ type RegisterFormValues = z.infer<typeof RegisterFormSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading: authLoading, updateUserProfile } = useAuth();
+  const { user, loading: authLoading, updateUserProfile, signInWithGoogle } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(RegisterFormSchema),
@@ -63,7 +64,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/"); // Redirect if already logged in
+      router.push("/"); 
     }
   }, [user, authLoading, router]);
 
@@ -74,17 +75,14 @@ export default function RegisterPage() {
       const firebaseUser = userCredential.user;
 
       if (firebaseUser) {
-        // Update Firebase Auth user's display name
-        await updateProfile(firebaseUser, {
+        await firebaseUpdateProfile(firebaseUser, {
           displayName: data.name,
         });
-
-        // Create/Update Firestore user profile document using context function
         await updateUserProfile({
           uid: firebaseUser.uid,
           name: data.name,
-          email: firebaseUser.email, // Use email from firebaseUser for consistency
-          isDonor: false, // Default for new registration
+          email: firebaseUser.email,
+          isDonor: false, 
         });
       }
 
@@ -92,7 +90,7 @@ export default function RegisterPage() {
         title: "Registration Successful!",
         description: "Welcome to BloodLink BD. You can now explore the app.",
       });
-      router.push("/"); // Redirect to home page after successful registration
+      // router.push("/"); // useEffect will handle redirection
     } catch (error: any) {
       console.error("Registration error:", error);
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -111,6 +109,27 @@ export default function RegisterPage() {
     }
   }
 
+  const handleGoogleSignUp = async () => {
+    setIsGoogleSubmitting(true);
+    try {
+      await signInWithGoogle();
+      toast({
+        title: "Signed up with Google!",
+        description: "Welcome to BloodLink BD.",
+      });
+      // router.push("/"); // useEffect will handle redirection
+    } catch (error: any) {
+      console.error("Google Sign-Up error on Register Page:", error);
+      toast({
+        title: "Google Sign-Up Failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
   if (authLoading && !user) {
     return (
       <div className="flex justify-center items-center py-10">
@@ -119,8 +138,6 @@ export default function RegisterPage() {
     );
   }
   
-  // If user becomes defined after initial loading, useEffect will handle redirect.
-  // This prevents rendering the form momentarily if user is already logged in.
   if (user) { 
       return null; 
   }
@@ -144,7 +161,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., John Doe" {...field} disabled={isSubmitting} />
+                    <Input placeholder="e.g., John Doe" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +174,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="e.g., member@example.com" {...field} disabled={isSubmitting} />
+                    <Input type="email" placeholder="e.g., member@example.com" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -170,7 +187,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormDescription>Must be at least 8 characters.</FormDescription>
                   <FormMessage />
@@ -184,13 +201,13 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting || isGoogleSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>
@@ -210,11 +227,15 @@ export default function RegisterPage() {
         <Button 
           variant="outline" 
           className="w-full" 
-          disabled={isSubmitting} 
-          onClick={() => toast({ title: "Coming Soon!", description: "Google Sign-In will be available shortly."})}
+          disabled={isSubmitting || isGoogleSubmitting} 
+          onClick={handleGoogleSignUp}
         >
-          <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
-          Sign up with Google (Soon)
+           {isGoogleSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
+          )}
+          Sign up with Google
         </Button>
       </CardContent>
       <CardFooter className="flex flex-col items-center gap-2">
@@ -230,5 +251,3 @@ export default function RegisterPage() {
     </Card>
   );
 }
-
-    

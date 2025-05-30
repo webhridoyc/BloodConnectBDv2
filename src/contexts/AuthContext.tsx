@@ -1,22 +1,21 @@
 
 "use client";
 
-import type { User as FirebaseUser } from "firebase/auth";
+import type { User as FirebaseUser, UserCredential } from "firebase/auth";
 import { createContext, useEffect, useState, useMemo, useCallback } from "react";
 import { auth, db } from "@/config/firebase";
-import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import type { UserProfile } from "@/lib/types";
-// LoadingSpinner is no longer rendered directly by AuthProvider
-// import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
-  loading: boolean; // This will represent if auth state resolution is ongoing
+  loading: boolean; 
   error: Error | null;
   signOut: () => Promise<void>;
   updateUserProfile: (profileData: Partial<UserProfile>) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,11 +27,10 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true); // True until first onAuthStateChanged completes
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // setLoading(true); // Already true initially, not needed here
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
@@ -45,33 +43,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (userDocSnap.exists()) {
               setUserProfile(userDocSnap.data() as UserProfile);
             } else {
-              // Create a basic profile if it doesn't exist
+              // Create a basic profile if it doesn't exist (e.g., for new Google Sign-In users)
               const newProfile: UserProfile = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 name: firebaseUser.displayName,
-                isDonor: false,
+                isDonor: false, 
+                // photoURL: firebaseUser.photoURL, // You can add this if you extend UserProfile
               };
               await setDoc(userDocRef, newProfile);
               setUserProfile(newProfile);
             }
           } catch (e) {
-            console.error("Error fetching user profile:", e);
+            console.error("Error fetching/creating user profile:", e);
             setError(e as Error);
-            setUserProfile(null); // Reset profile on error
+            setUserProfile(null); 
           }
         } else {
           setUser(null);
           setUserProfile(null);
         }
-        setLoading(false); // Auth state resolved (or failed)
+        setLoading(false); 
       },
       (e) => {
         console.error("Auth state change error:", e);
         setError(e);
         setUser(null);
         setUserProfile(null);
-        setLoading(false); // Auth state resolution failed
+        setLoading(false); 
       }
     );
 
@@ -93,7 +92,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (user) {
       try {
         const userDocRef = doc(db, "users", user.uid);
-        // Ensure donorRegistrationTime is set if isDonor becomes true and it's not already set
         const updateData = { ...profileData };
         if (profileData.isDonor && !userProfile?.donorRegistrationTime) {
           updateData.donorRegistrationTime = serverTimestamp();
@@ -103,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } catch (e) {
         console.error("Error updating user profile:", e);
         setError(e as Error);
-        throw e; // Re-throw to be caught by caller
+        throw e; 
       }
     } else {
       const e = new Error("User not authenticated for profile update.");
@@ -113,14 +111,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user, userProfile]);
 
+  const signInWithGoogle = useCallback(async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged will handle the rest (setting user, profile, etc.)
+    } catch (e) {
+      console.error("Google Sign-In error in AuthContext:", e);
+      setError(e as Error); // Set context error state
+      throw e; // Re-throw to be caught by the UI component for toasts etc.
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, userProfile, loading, error, signOut, updateUserProfile }),
-    [user, userProfile, loading, error, signOut, updateUserProfile]
+    () => ({ user, userProfile, loading, error, signOut, updateUserProfile, signInWithGoogle }),
+    [user, userProfile, loading, error, signOut, updateUserProfile, signInWithGoogle]
   );
 
-  // AuthProvider will now always render its children.
-  // The loading state is passed via context for consumers to decide how to render.
-  // This removes the conditional rendering of a global spinner within AuthProvider itself,
-  // which was the source of the hydration mismatch.
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

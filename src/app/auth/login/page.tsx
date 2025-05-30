@@ -34,7 +34,7 @@ import { Loader2, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 
 const LoginFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(1, { message: "Password is required." }), // Min 1, as Firebase handles complexity
+  password: z.string().min(1, { message: "Password is required." }),
 });
 
 type LoginFormValues = z.infer<typeof LoginFormSchema>;
@@ -42,8 +42,9 @@ type LoginFormValues = z.infer<typeof LoginFormSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signInWithGoogle } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(LoginFormSchema),
@@ -55,7 +56,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/"); // Redirect if already logged in
+      router.push("/"); 
     }
   }, [user, authLoading, router]);
 
@@ -67,7 +68,7 @@ export default function LoginPage() {
         title: "Login Successful!",
         description: "Welcome back to BloodLink BD.",
       });
-      router.push("/"); // Redirect to home page after successful login
+      // router.push("/"); // useEffect will handle redirection
     } catch (error: any) {
       console.error("Login error:", error);
       let errorMessage = "An unexpected error occurred. Please try again.";
@@ -86,6 +87,27 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleSubmitting(true);
+    try {
+      await signInWithGoogle();
+      toast({
+        title: "Signed in with Google!",
+        description: "Welcome to BloodLink BD.",
+      });
+      // router.push("/"); // useEffect will handle redirection
+    } catch (error: any) {
+      console.error("Google Sign-In error on Login Page:", error);
+      toast({
+        title: "Google Sign-In Failed",
+        description: error.message || "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
+
   if (authLoading && !user) {
     return (
       <div className="flex justify-center items-center py-10">
@@ -94,9 +116,8 @@ export default function LoginPage() {
     );
   }
 
-  // If user becomes defined after initial loading, useEffect will handle redirect.
-  if (user) {
-    return null;
+  if (user) { 
+    return null; 
   }
 
   return (
@@ -118,7 +139,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="member@example.com" {...field} disabled={isSubmitting} />
+                    <Input type="email" placeholder="member@example.com" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,13 +152,13 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting || isGoogleSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSubmitting || isGoogleSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
@@ -157,11 +178,15 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full"
-          disabled={isSubmitting}
-          onClick={() => toast({ title: "Coming Soon!", description: "Google Sign-In will be available shortly."})}
+          disabled={isSubmitting || isGoogleSubmitting}
+          onClick={handleGoogleSignIn}
         >
-          <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
-          Sign in with Google (Soon)
+          {isGoogleSubmitting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
+          )}
+          Sign in with Google
         </Button>
       </CardContent>
       <CardFooter className="flex flex-col items-center gap-2">
