@@ -99,3 +99,13 @@
     /* font-family removed as it's handled by next/font in layout.tsx */
   }
 }
+
+@layer utilities {
+  /* Add hover animation for lucide icons */
+  svg.lucide {
+    @apply transition-transform duration-200 ease-in-out;
+  }
+  svg.lucide:hover {
+    @apply transform scale-110;
+  }
+}

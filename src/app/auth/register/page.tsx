@@ -78,8 +78,11 @@ export default function RegisterPage() {
         await firebaseUpdateProfile(firebaseUser, {
           displayName: data.name,
         });
+        // AuthContext's onAuthStateChanged will handle creating/updating Firestore profile for new users
+        // including those from email/password sign-up if it's structured to do so.
+        // If not, explicitly call updateUserProfile here:
         await updateUserProfile({
-          uid: firebaseUser.uid,
+          uid: firebaseUser.uid, // Ensure uid is passed if AuthContext doesn't get it from firebaseUser
           name: data.name,
           email: firebaseUser.email,
           isDonor: false, 
@@ -120,9 +123,17 @@ export default function RegisterPage() {
       // router.push("/"); // useEffect will handle redirection
     } catch (error: any) {
       console.error("Google Sign-Up error on Register Page:", error);
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Sign-up process was cancelled. Please try again.";
+      } else if (error.code === "auth/cancelled-popup-request") {
+        errorMessage = "Multiple sign-up attempts. Please try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Google Sign-Up Failed",
-        description: error.message || "An unexpected error occurred. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -233,7 +244,7 @@ export default function RegisterPage() {
            {isGoogleSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
+            <svg className="mr-2 h-4 w-4 transition-transform duration-200 ease-in-out hover:scale-110" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 118.3 512 0 398.5 0 256S118.3 0 244 0c69.9 0 125.5 28.9 165.7 68.6L372.3 112.6C339.2 83.8 296.3 64 244 64c-95.6 0-173.5 78.3-173.5 174.7S148.4 413.4 244 413.4c52.8 0 95.3-22.1 126.8-53.1 26.7-26 42.9-62.1 47.9-99.9H244V261.8h244z"></path></svg>
           )}
           Sign up with Google
         </Button>
