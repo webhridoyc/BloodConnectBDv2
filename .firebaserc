@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "bloodconnectbd"
-  }
+    "default": "bloodconnectbd",
+    "y": "bloodconnectbd"
+  },
+  "targets": {},
+  "etags": {}
 }
