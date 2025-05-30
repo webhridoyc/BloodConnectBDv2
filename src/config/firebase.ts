@@ -9,11 +9,17 @@ import {
   CACHE_SIZE_UNLIMITED
 } from "firebase/firestore";
 import { getAnalytics, type Analytics } from "firebase/analytics";
+import { config } from 'dotenv'; // Explicitly import and call dotenv
+
+// Attempt to load environment variables from .env (or .env.local if dotenv picks it up)
+// This is an attempt to ensure variables are loaded if Next.js's default mechanism isn't working as expected.
+config(); // Call dotenv config at the very top
 
 // Log the values of environment variables for debugging (SERVER-SIDE)
 // These logs will appear in your Next.js development server terminal.
 console.log('Firebase Config (SERVER-SIDE): NEXT_PUBLIC_FIREBASE_API_KEY =', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 console.log('Firebase Config (SERVER-SIDE): NEXT_PUBLIC_FIREBASE_PROJECT_ID =', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+console.log('Firebase Config (SERVER-SIDE): NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN =', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -31,7 +37,6 @@ const firebaseConfig = {
 const missingConfigKeys: string[] = [];
 if (!firebaseConfig.apiKey) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_API_KEY");
 if (!firebaseConfig.projectId) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
-// Add checks for other essential keys if necessary, e.g., authDomain
 if (!firebaseConfig.authDomain) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
 
 
@@ -118,3 +123,5 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
 }
 
 export { app, auth, db, analytics };
+
+    
