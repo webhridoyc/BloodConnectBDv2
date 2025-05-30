@@ -18,16 +18,16 @@
 
 // Log the values of environment variables for debugging (SERVER-SIDE)
 // These logs will appear in your Next.js development server terminal.
-console.log('--- Firebase Config Debug (SERVER-SIDE START) ---');
-console.log('Attempting to read from process.env:');
-console.log('NEXT_PUBLIC_FIREBASE_API_KEY =', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID =', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
-console.log('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN =', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
-console.log('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET =', process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
-console.log('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID =', process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID);
-console.log('NEXT_PUBLIC_FIREBASE_APP_ID =', process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
-console.log('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID =', process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID);
-console.log('--- Firebase Config Debug (SERVER-SIDE END) ---');
+// console.log('--- Firebase Config Debug (SERVER-SIDE START) ---');
+// console.log('Attempting to read from process.env:');
+// console.log('NEXT_PUBLIC_FIREBASE_API_KEY =', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+// console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID =', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+// console.log('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN =', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
+// console.log('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET =', process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET);
+// console.log('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID =', process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID);
+// console.log('NEXT_PUBLIC_FIREBASE_APP_ID =', process.env.NEXT_PUBLIC_FIREBASE_APP_ID);
+// console.log('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID =', process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID);
+// console.log('--- Firebase Config Debug (SERVER-SIDE END) ---');
 
 
 // Import the functions you need from the SDKs you need
@@ -40,38 +40,17 @@ import { getAuth as firebaseGetAuth } from "firebase/auth";
 import type { Firestore} from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
+  authDomain: "bloodconnectbd.firebaseapp.com",
+  projectId: "bloodconnectbd",
+  storageBucket: "bloodconnectbd.firebasestorage.app",
+  messagingSenderId: "87550285201",
+  appId: "1:87550285201:web:25286806971f860d76f630",
+  measurementId: "G-L9XFJLP6C9"
 };
-
-// Check for missing critical Firebase config values
-const missingConfigKeys: string[] = [];
-if (!firebaseConfig.apiKey) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_API_KEY");
-if (!firebaseConfig.projectId) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
-if (!firebaseConfig.authDomain) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
-// Add other essential keys if needed, e.g., appId, storageBucket if they are critical for startup
-
-if (missingConfigKeys.length > 0) {
-  const errorMessage =
-    `CRITICAL Firebase Config Error: The following Firebase configuration variable(s) are undefined or invalid: [${missingConfigKeys.join(", ")}]. ` +
-    "Please CHECK YOUR SERVER TERMINAL LOGS for the (SERVER-SIDE) values printed just above this error message. " +
-    "Then, ensure these variables are correctly set in your .env.local file (located in the project root directory) for local development, or in your Firebase App Hosting environment configuration for deployment, " +
-    "and that you have RESTARTED your Next.js development server after making changes to .env.local. " +
-    "Firebase services cannot be initialized.";
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  console.error(errorMessage);
-  console.error("Firebase config object based on current env vars:", firebaseConfig);
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  // Throw a clear error to stop initialization if critical config is missing.
-  throw new Error(errorMessage);
-}
-
 
 let app: FirebaseApp;
 let auth: Auth;
