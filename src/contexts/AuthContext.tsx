@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { User as FirebaseUser } from "firebase/auth";
@@ -6,12 +7,13 @@ import { auth, db } from "@/config/firebase";
 import { onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import type { UserProfile } from "@/lib/types";
-import { LoadingSpinner } from "@/components/core/LoadingSpinner";
+// LoadingSpinner is no longer rendered directly by AuthProvider
+// import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
-  loading: boolean;
+  loading: boolean; // This will represent if auth state resolution is ongoing
   error: Error | null;
   signOut: () => Promise<void>;
   updateUserProfile: (profileData: Partial<UserProfile>) => Promise<void>;
@@ -26,14 +28,14 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // True until first onAuthStateChanged completes
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // setLoading(true); // Already true initially, not needed here
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
-        setLoading(true);
         setError(null);
         if (firebaseUser) {
           setUser(firebaseUser);
@@ -62,14 +64,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
           setUserProfile(null);
         }
-        setLoading(false);
+        setLoading(false); // Auth state resolved (or failed)
       },
       (e) => {
         console.error("Auth state change error:", e);
         setError(e);
         setUser(null);
         setUserProfile(null);
-        setLoading(false);
+        setLoading(false); // Auth state resolution failed
       }
     );
 
@@ -116,15 +118,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [user, userProfile, loading, error, signOut, updateUserProfile]
   );
 
-  if (loading && typeof window !== 'undefined' && window.location.pathname.startsWith('/auth')) {
-     // Don't show global spinner on auth pages if initial load is happening
-  } else if (loading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <LoadingSpinner size={48} />
-      </div>
-    );
-  }
-
+  // AuthProvider will now always render its children.
+  // The loading state is passed via context for consumers to decide how to render.
+  // This removes the conditional rendering of a global spinner within AuthProvider itself,
+  // which was the source of the hydration mismatch.
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

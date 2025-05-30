@@ -1,11 +1,28 @@
+
+"use client"; // Make MainLayout a client component to use useAuth
+
 import { Navbar } from "@/components/core/Navbar";
 import { SupportChatbotWidget } from "@/components/ai/SupportChatbotWidget";
+import { useAuth } from "@/hooks/useAuth";
+import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const { loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    // If authentication is still loading, show a full-page spinner.
+    // This covers the initial load for non-auth pages.
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <LoadingSpinner size={48} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
