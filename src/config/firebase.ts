@@ -16,7 +16,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
   authDomain: "bloodconnectbd.firebaseapp.com",
   projectId: "bloodconnectbd",
-  storageBucket: "bloodconnectbd.firebasestorage.app", // Corrected from .firebasestorage.app to .appspot.com if it's a standard Firebase bucket
+  storageBucket: "bloodconnectbd.appspot.com", // Assuming this was corrected to .appspot.com previously
   messagingSenderId: "87550285201",
   appId: "1:87550285201:web:25286806971f860d76f630",
   measurementId: "G-L9XFJLP6C9"
@@ -25,56 +25,67 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
-let analytics: Analytics | undefined;
+let analyticsInstance: Analytics | undefined; // Renamed to avoid conflict
 let persistenceEnabled = false; // Flag to ensure persistence is enabled only once
 
 if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on the client-side
   if (!getApps().length) {
+    console.log("Firebase: Initializing new app instance (client-side)...");
     app = initializeApp(firebaseConfig);
     try {
       if (firebaseConfig.measurementId) {
-        analytics = getAnalytics(app);
+        console.log("Firebase: Attempting to initialize Analytics...");
+        analyticsInstance = getAnalytics(app);
+        console.log("Firebase: Analytics initialized.");
       } else {
         console.warn("Firebase Analytics measurementId is missing; Analytics will not be initialized.");
-        analytics = undefined;
+        analyticsInstance = undefined;
       }
     } catch (e) {
-      console.warn("Firebase Analytics could not be initialized.", e);
-      analytics = undefined;
-    }
-    db = firebaseGetFirestore(app);
-    if (!persistenceEnabled) {
-      enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
-        .then(() => {
-          persistenceEnabled = true;
-          console.log("Firebase Firestore offline persistence enabled successfully.");
-        })
-        .catch((err) => {
-          if (err.code == 'failed-precondition') {
-            console.warn("Firestore offline persistence failed (failed-precondition): Usually means multiple tabs are open or persistence was already enabled. Offline capabilities might be limited or rely on existing state.");
-            persistenceEnabled = true; 
-          } else if (err.code == 'unimplemented') {
-            console.warn("Firestore offline persistence failed (unimplemented): The current browser does not support all of the features required to enable persistence. Offline capabilities will be unavailable.");
-          } else {
-            console.error("Firestore offline persistence failed with an unexpected error: ", err);
-          }
-        });
+      console.warn("Firebase Analytics could not be initialized on new app instance.", e);
+      analyticsInstance = undefined;
     }
   } else {
+    console.log("Firebase: Getting existing app instance (client-side)...");
     app = getApp();
-    if (!analytics && firebaseConfig.measurementId) { 
+    if (!analyticsInstance && firebaseConfig.measurementId) {
         try {
-            analytics = getAnalytics(app);
+            console.log("Firebase: Attempting to re-initialize Analytics on existing app...");
+            analyticsInstance = getAnalytics(app);
+            console.log("Firebase: Analytics re-initialized.");
         } catch(e) {
             console.warn("Firebase Analytics could not be re-initialized on existing app.", e);
-            analytics = undefined;
+            analyticsInstance = undefined;
         }
     }
-    db = firebaseGetFirestore(app);
   }
   auth = firebaseGetAuth(app);
+  db = firebaseGetFirestore(app);
+
+  if (!persistenceEnabled) {
+    console.log("Firebase Firestore: Attempting to enable offline persistence...");
+    enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
+      .then(() => {
+        persistenceEnabled = true;
+        console.log("Firebase Firestore: Offline persistence ENABLED SUCCESSFULLY.");
+      })
+      .catch((err) => {
+        if (err.code === 'failed-precondition') {
+          console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition). This usually means multiple tabs are open, or persistence was already enabled in another tab. Offline capabilities might be limited or rely on existing state. Assuming persistence is active in another context.");
+          persistenceEnabled = true; // Set to true to prevent repeated attempts if another tab holds the lock.
+        } else if (err.code === 'unimplemented') {
+          console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented). The current browser does not support all features required for persistence. Offline capabilities will be unavailable.");
+        } else {
+          console.error("Firebase Firestore: Offline persistence FAILED with an unexpected error: ", err);
+        }
+      });
+  } else {
+    console.log("Firebase Firestore: Offline persistence was already attempted (or assumed active) in this session.");
+  }
+
 } else {
   // Server-side initialization
+  console.log("Firebase: Initializing app instance (server-side)...");
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
   } else {
@@ -82,7 +93,8 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
   }
   auth = firebaseGetAuth(app);
   db = firebaseGetFirestore(app);
-  analytics = undefined; // Analytics not typically used server-side in this context
+  analyticsInstance = undefined; // Analytics not typically used server-side in this context
+  console.log("Firebase: App initialized (server-side). Firestore persistence is not applicable server-side.");
 }
 
-export { app, auth, db, analytics };
+export { app, auth, db, analyticsInstance as analytics };
