@@ -34,7 +34,7 @@ export default function HomePage() {
       <section className="py-12">
         <h2 className="text-3xl font-semibold text-center mb-10 text-foreground">How It Works</h2>
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-1">
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
                 <div className="p-3 bg-accent/30 rounded-full">
@@ -49,7 +49,7 @@ export default function HomePage() {
               </p>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-2">
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
                 <div className="p-3 bg-accent/30 rounded-full">
@@ -64,7 +64,7 @@ export default function HomePage() {
               </p>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-3">
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
                 <div className="p-3 bg-accent/30 rounded-full">
