@@ -9,9 +9,10 @@ import { getAuth as firebaseGetAuth } from "firebase/auth"; // Renamed to avoid 
 import type { Firestore } from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Your web app's Firebase configuration (Hardcoded)
+// --- START: Firebase Configuration ---
+// Your web app's Firebase configuration (Hardcoded as per user request for local development troubleshooting)
 // WARNING: Hardcoding credentials is NOT SECURE for production.
-// Use environment variables for deployed applications.
+// For deployment, you MUST use environment variables set in your hosting provider.
 const firebaseConfig = {
   apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
   authDomain: "bloodconnectbd.firebaseapp.com",
@@ -38,52 +39,57 @@ let persistenceEnabled = false; // Flag to attempt enabling persistence only onc
 
 // Initialize Firebase
 // This block will run on both server and client.
-// initializeApp is safe to call multiple times if the app is already initialized from the same config.
 if (!getApps().length) {
   try {
     app = initializeApp(firebaseConfig);
     console.log("Firebase app initialized successfully with hardcoded config.");
-  } catch (e) {
-    console.error("CRITICAL Firebase Error during initializeApp with hardcoded config:", e);
-    // If initializeApp itself fails with hardcoded values, something is fundamentally wrong
-    // with the provided config object (e.g., malformed, truly invalid values not caught by basic checks).
-    throw new Error("Firebase core initialization failed with hardcoded config. Check console for FirebaseError details.");
+  } catch (e: any) {
+    const criticalErrorMessage = `CRITICAL Firebase Error during initializeApp with hardcoded config. Provided config: ${JSON.stringify(firebaseConfig)}. Error: ${e.message}`;
+    console.error(criticalErrorMessage);
+    // This error will be thrown, potentially causing an Internal Server Error if on server-side.
+    throw new Error(criticalErrorMessage);
   }
 } else {
   app = getApp();
-  console.log("Firebase app already initialized, using existing app instance.");
+  console.log("Firebase app already initialized, using existing app instance (potentially with old config if not restarted after changes).");
 }
 
+// Initialize Auth and Firestore services
+// This block will also run on both server and client.
 try {
   auth = firebaseGetAuth(app);
   db = firebaseGetFirestore(app);
-} catch (e) {
-  console.error("CRITICAL Firebase Error during getAuth() or getFirestore() with hardcoded config:", e);
-  throw new Error("Firebase service (Auth/Firestore) initialization failed. Check console for FirebaseError details.");
+  console.log("Firebase Auth and Firestore services obtained successfully.");
+} catch (e: any) {
+  const serviceInitErrorMessage = `CRITICAL Firebase Error during getAuth() or getFirestore() with hardcoded config. Error: ${e.message}`;
+  console.error(serviceInitErrorMessage);
+  // This error will be thrown, potentially causing an Internal Server Error if on server-side.
+  throw new Error(serviceInitErrorMessage);
 }
 
 
 // Client-side specific initializations
 if (typeof window !== 'undefined') {
+  console.log("Firebase config: Running on client-side. Attempting Analytics and Persistence setup.");
   // Initialize Analytics only on the client and if supported
   isAnalyticsSupported().then((supported) => {
     if (supported && firebaseConfig.measurementId) {
       try {
           analyticsInstance = getAnalytics(app);
-          console.log("Firebase Analytics initialized.");
+          console.log("Firebase Analytics initialized (client-side).");
       } catch (e) {
-          console.warn("Firebase Analytics could not be initialized (getAnalytics error).", e);
+          console.warn("Firebase Analytics could not be initialized (getAnalytics error on client).", e);
           analyticsInstance = undefined;
       }
     } else if (firebaseConfig.measurementId) {
-      console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized.");
+      console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized (client-side).");
       analyticsInstance = undefined;
     } else {
-      // No measurementId provided
+      console.log("Firebase: No measurementId provided in config, Analytics will not be initialized (client-side).")
       analyticsInstance = undefined;
     }
   }).catch(e => {
-    console.warn("Firebase Analytics support check failed or getAnalytics errored.", e);
+    console.warn("Firebase Analytics support check failed or getAnalytics errored (client-side).", e);
     analyticsInstance = undefined;
   });
 
@@ -92,22 +98,23 @@ if (typeof window !== 'undefined') {
     enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
       .then(() => {
         persistenceEnabled = true;
-        console.log("Firebase Firestore: Offline persistence ENABLED SUCCESSFULLY.");
+        console.log("Firebase Firestore: Offline persistence ENABLED SUCCESSFULLY (client-side).");
       })
-      .catch((err) => {
+      .catch((err: any) => {
         if (err.code === 'failed-precondition') {
-          console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition). Usually means multiple tabs are open or persistence already enabled. Assuming active elsewhere.");
+          console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition on client). Usually means multiple tabs are open or persistence already enabled. Assuming active elsewhere.");
           persistenceEnabled = true; // Assume it's fine if this specific error occurs
         } else if (err.code === 'unimplemented') {
-          console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented). Browser doesn't support required features.");
+          console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented on client). Browser doesn't support required features.");
         } else {
-          console.error("Firebase Firestore: Offline persistence FAILED with an unexpected error: ", err);
+          console.error("Firebase Firestore: Offline persistence FAILED with an unexpected error (client-side): ", err);
         }
       });
   }
 } else {
-  // Server-side: No analytics
+  // Server-side: No analytics, no client-side persistence
   analyticsInstance = undefined;
+  console.log("Firebase config: Running on server-side. Analytics and client-side persistence setup skipped.");
 }
 
 export { app, auth, db, analyticsInstance as analytics };
