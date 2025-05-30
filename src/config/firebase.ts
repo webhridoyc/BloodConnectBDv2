@@ -1,24 +1,26 @@
 
-// Explicitly load .env variables for server-side, especially during build or when not using Next.js's built-in loading
+// Explicitly load .env.local for server-side, just in case Next.js internal loading needs a nudge,
+// especially during build or when not using Next.js's built-in loading for all scenarios.
+// However, Next.js should handle .env.local automatically for `process.env`.
+// This line is more for robust debugging visibility if issues persist.
 // import dotenv from 'dotenv';
-// const envConfig = dotenv.config({ path: '.env.local' }); // Ensure .env.local is prioritized if it exists
+// const envConfig = dotenv.config({ path: '.env.local' });
 
-// console.log('--- Firebase Config Debug (Top of file) ---');
+// console.log('--- Firebase Config Debug (Top of file, src/config/firebase.ts) ---');
 // if (envConfig.error) {
 //   console.warn(
 //     "Firebase Config: .env.local file not found by explicit dotenv.config() or error loading it. This is okay if Next.js internal loading is working or if env vars are set in the hosting environment.",
-//     envConfig.error.message // Log only the message to avoid too much verbosity
+//     envConfig.error.message
 //   );
 // } else if (envConfig.parsed) {
 //   console.log('Firebase Config: Successfully loaded .env.local file via explicit dotenv.config().');
-//   // console.log('Parsed env vars by dotenv:', envConfig.parsed); // Optionally log all parsed vars
 // } else {
-//   console.log('Firebase Config: dotenv.config() ran but did not parse any variables (envConfig.parsed is null/undefined). This might be okay if using built-in Next.js env loading.');
+//   console.log('Firebase Config: dotenv.config() ran but did not parse any variables. This might be okay if using built-in Next.js env loading.');
 // }
 
 // Log the values of environment variables for debugging (SERVER-SIDE)
 // These logs will appear in your Next.js development server terminal.
-// console.log('--- Firebase Config Debug (SERVER-SIDE START) ---');
+// console.log('--- Firebase Config Debug (SERVER-SIDE START, src/config/firebase.ts) ---');
 // console.log('Attempting to read from process.env:');
 // console.log('NEXT_PUBLIC_FIREBASE_API_KEY =', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 // console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID =', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
@@ -29,8 +31,6 @@
 // console.log('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID =', process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID);
 // console.log('--- Firebase Config Debug (SERVER-SIDE END) ---');
 
-
-// Import the functions you need from the SDKs you need
 import type { FirebaseApp} from "firebase/app";
 import { initializeApp, getApps, getApp } from "firebase/app";
 import type { Analytics} from "firebase/analytics";
@@ -40,17 +40,36 @@ import { getAuth as firebaseGetAuth } from "firebase/auth";
 import type { Firestore} from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Hardcoded Firebase configuration as provided by the user.
+// IMPORTANT: For production, use environment variables set in your hosting provider.
 const firebaseConfig = {
   apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
   authDomain: "bloodconnectbd.firebaseapp.com",
   projectId: "bloodconnectbd",
-  storageBucket: "bloodconnectbd.firebasestorage.app",
+  storageBucket: "bloodconnectbd.firebasestorage.app", // Note: usually ends with .appspot.com
   messagingSenderId: "87550285201",
   appId: "1:87550285201:web:25286806971f860d76f630",
   measurementId: "G-L9XFJLP6C9"
 };
+
+// Check for missing critical Firebase configuration values from the hardcoded object
+const missingConfigKeys: string[] = [];
+if (!firebaseConfig.apiKey) missingConfigKeys.push('apiKey in firebaseConfig object');
+if (!firebaseConfig.projectId) missingConfigKeys.push('projectId in firebaseConfig object');
+if (!firebaseConfig.authDomain) missingConfigKeys.push('authDomain in firebaseConfig object');
+
+if (missingConfigKeys.length > 0) {
+  const errorMessage =
+    `CRITICAL Firebase Config Error: The following Firebase configuration value(s) are missing or invalid in the hardcoded firebaseConfig object: [${missingConfigKeys.join(', ')}]. ` +
+    "Please ensure these values are correctly set in the firebaseConfig object within src/config/firebase.ts. " +
+    "Firebase services cannot be initialized.";
+  
+  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  console.error(errorMessage);
+  console.error("Firebase config object being used:", firebaseConfig);
+  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  throw new Error(errorMessage);
+}
 
 let app: FirebaseApp;
 let auth: Auth;
@@ -77,8 +96,7 @@ if (typeof window !== 'undefined') {
         console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized.");
         analyticsInstance = undefined;
       } else {
-        // measurementId is optional, so this is not a warning if it's missing.
-        // console.log("Firebase: measurementId is missing; Analytics will not be initialized.");
+        console.log("Firebase: measurementId not found in config, Analytics will not be initialized.");
         analyticsInstance = undefined;
       }
     }).catch(e => {
@@ -103,7 +121,7 @@ if (typeof window !== 'undefined') {
                  console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized on existing app.");
                  analyticsInstance = undefined;
             } else {
-                // measurementId is optional
+                console.log("Firebase: measurementId not found in config, Analytics will not be initialized on existing app.");
                 analyticsInstance = undefined;
             }
         }).catch(e => {
@@ -125,15 +143,13 @@ if (typeof window !== 'undefined') {
       .catch((err) => {
         if (err.code === 'failed-precondition') {
           console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition). Usually means multiple tabs are open or persistence already enabled. Assuming active elsewhere.");
-          persistenceEnabled = true; // Assume active to prevent repeated attempts in the same session
+          persistenceEnabled = true; 
         } else if (err.code === 'unimplemented') {
           console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented). Browser doesn't support required features.");
         } else {
           console.error("Firebase Firestore: Offline persistence FAILED with an unexpected error: ", err);
         }
       });
-  } else {
-    // console.log("Firebase Firestore: Offline persistence was already attempted/active in this session.");
   }
 
 } else {
@@ -146,8 +162,7 @@ if (typeof window !== 'undefined') {
   }
   auth = firebaseGetAuth(app);
   db = firebaseGetFirestore(app);
-  // Analytics is not typically used server-side for page tracking in this manner
-  analyticsInstance = undefined;
+  analyticsInstance = undefined; // Analytics is not typically used server-side in Next.js like this
   console.log("Firebase: App initialized (server-side). Firestore persistence is not applicable here.");
 }
 
