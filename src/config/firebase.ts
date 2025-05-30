@@ -19,10 +19,18 @@ const firebaseConfig = {
 
 // Perform an upfront check for essential Firebase configuration
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  const missingVars: string[] = [];
+  if (!firebaseConfig.apiKey) {
+    missingVars.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+  }
+  if (!firebaseConfig.projectId) {
+    missingVars.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+  }
+
   const errorMessage =
-    "CRITICAL Firebase Config Error: Firebase API Key or Project ID is undefined or invalid. " +
+    `CRITICAL Firebase Config Error: The following Firebase configuration variable(s) are undefined or invalid: [${missingVars.join(', ')}]. ` +
     "Please CHECK YOUR SERVER TERMINAL LOGS for the (SERVER-SIDE) values printed just above this error message. " +
-    "Then, ensure NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID " +
+    `Then, ensure ${missingVars.join(' and ')} ` +
     "are correctly set in your .env.local file (located in the project root directory) " +
     "and that you have RESTARTED your Next.js development server after making changes to the .env.local file. " +
     "Firebase services cannot be initialized.";
