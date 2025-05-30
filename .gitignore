@@ -1,3 +1,4 @@
+gitignore
 # Firebase + Next.js standard ignore
 node_modules
 .next
