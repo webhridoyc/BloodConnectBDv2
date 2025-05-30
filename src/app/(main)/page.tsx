@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplet, Users, HeartHandshake, Search, Building, UserPlus } from "lucide-react";
@@ -9,14 +10,14 @@ export default function HomePage() {
     <div className="space-y-12">
       <section className="text-center py-12 md:py-20 bg-gradient-to-br from-primary/20 via-background to-background rounded-xl shadow-lg">
         <div className="container mx-auto px-4">
-          <Droplet className="mx-auto h-16 w-16 text-primary mb-6 animate-pulse" />
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+          <Droplet className="mx-auto h-16 w-16 text-primary mb-6 animate-pulse animate-fade-in-up" />
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-fade-in-up">
             Welcome to <span className="text-primary">BloodLink BD</span>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground animate-fade-in-up-delayed-1">
             Connecting hearts, saving lives. Find blood donors and request blood in Bangladesh with ease and efficiency.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in-up-delayed-2">
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-transform hover:scale-105">
               <Link href="/request-blood">
                 <HeartHandshake className="mr-2 h-5 w-5" /> Request Blood
@@ -85,12 +86,12 @@ export default function HomePage() {
       <section className="py-12 bg-card rounded-xl shadow-lg">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h2 className="text-3xl font-semibold mb-4 text-foreground">Join Our Community</h2>
-            <p className="text-muted-foreground mb-6 text-lg">
+            <h2 className="text-3xl font-semibold mb-4 text-foreground animate-fade-in-up">Join Our Community</h2>
+            <p className="text-muted-foreground mb-6 text-lg animate-fade-in-up-delayed-1">
               Be a part of a life-saving network. Every drop counts, and every donor is a hero. 
               Together, we can make a difference in countless lives across Bangladesh.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-delayed-2">
               <Button size="lg" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-transform hover:scale-105">
                 <Link href="/auth/register">
                   Get Started
@@ -103,7 +104,7 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-          <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-md">
+          <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-md animate-fade-in-up-delayed-3">
             <Image 
               src="https://placehold.co/600x400.png" 
               alt="Community of blood donors" 
@@ -116,8 +117,8 @@ export default function HomePage() {
       </section>
 
        <section className="text-center py-12">
-        <h2 className="text-3xl font-semibold text-center mb-2 text-foreground">Our Mission</h2>
-         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+        <h2 className="text-3xl font-semibold text-center mb-2 text-foreground animate-fade-in-up">Our Mission</h2>
+         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground animate-fade-in-up-delayed-1">
             To bridge the gap between blood donors and those in need, fostering a community of support and compassion throughout Bangladesh. We leverage technology to make blood donation and reception more accessible and efficient.
           </p>
       </section>
