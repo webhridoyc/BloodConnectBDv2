@@ -4,26 +4,20 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Droplet, MapPin, Phone, Users, AlertTriangle, Loader2 } from "lucide-react";
-import type { Metadata } from "next"; // Keep for potential generateMetadata if needed
+import { Droplet, MapPin, Phone, Users, AlertTriangle } from "lucide-react";
+// Metadata import removed as it's a client component
+// import type { Metadata } from "next"; 
 import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/config/firebase";
-import type { UserProfile } from "@/lib/types"; // Using UserProfile as source for donor data
+import type { UserProfile } from "@/lib/types"; 
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 
-// Metadata might be handled by a Server Component parent or generateMetadata
-// export const metadata: Metadata = {
-//   title: "Find Donors | BloodLink BD",
-//   description: "Find registered blood donors in your area.",
-// };
-
 interface DonorDisplayData {
-  uid: string;
+  uid: string; // This will now be doc.id
   name: string;
   bloodGroup: string;
   location: string;
   contactNumber: string;
-  // registrationTime?: string; // Optional: formatted string for display
 }
 
 export default function DonorsPage() {
@@ -43,15 +37,17 @@ export default function DonorsPage() {
         querySnapshot.forEach((doc) => {
           const userData = doc.data() as UserProfile;
           // Ensure essential donor fields are present
-          if (userData.name && userData.bloodGroup && userData.location && userData.contactNumber) {
+          // Also ensure userData itself exists, and that doc.id is available
+          if (doc.id && userData && userData.name && userData.bloodGroup && userData.location && userData.contactNumber) {
             fetchedDonors.push({
-              uid: userData.uid,
+              uid: doc.id, // Use doc.id as the unique key source
               name: userData.name,
               bloodGroup: userData.bloodGroup,
               location: userData.location,
-              // In a real app, you might want to further format or control visibility of contactNumber
               contactNumber: userData.contactNumber, 
             });
+          } else {
+            console.warn("Skipping donor document due to missing data or ID:", doc.id, userData);
           }
         });
         setDonors(fetchedDonors);
@@ -126,12 +122,10 @@ export default function DonorsPage() {
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Phone className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
-                {/* Displaying contact number - consider privacy implications for a real app */}
                 <span className="font-semibold text-foreground">{donor.contactNumber}</span>
               </div>
             </CardContent>
             <CardFooter>
-              {/* TODO: Implement actual contact request logic if needed */}
               <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 Request Contact (Soon)
               </Button>
@@ -152,21 +146,6 @@ export default function DonorsPage() {
           Browse our network of selfless individuals ready to save lives. 
         </p>
       </section>
-
-      {/* Placeholder for future filter section (can be added back later) */}
-      {/* 
-      <section className="animate-fade-in-up-delayed-1">
-        <Card className="p-6 shadow-md">
-          <CardHeader>
-            <CardTitle className="text-2xl">Filter Donors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Filter options (e.g., by location, blood group) will be available here soon.</p>
-          </CardContent>
-        </Card>
-      </section> 
-      */}
-
       <section className="animate-fade-in-up-delayed-1">
         {renderContent()}
       </section>
