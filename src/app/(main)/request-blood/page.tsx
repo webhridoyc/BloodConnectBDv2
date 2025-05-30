@@ -1,7 +1,6 @@
 
 "use client";
 
-import type { Metadata } from "next";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,10 +37,11 @@ import { useToast } from "@/hooks/use-toast";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/config/firebase";
 
-export const metadata: Metadata = {
-  title: "Request Blood | BloodLink BD",
-  description: "Submit a blood request to find donors in Bangladesh.",
-};
+// Metadata removed as it cannot be exported from a Client Component
+// export const metadata: Metadata = {
+//   title: "Request Blood | BloodLink BD",
+//   description: "Submit a blood request to find donors in Bangladesh.",
+// };
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 const urgencyLevels = ["low", "medium", "high"] as const;
@@ -308,4 +308,3 @@ export default function RequestBloodPage() {
     </div>
   );
 }
-
