@@ -5,12 +5,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import type { Analytics } from "firebase/analytics";
 import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
 import type { Auth } from "firebase/auth";
-import { getAuth } from "firebase/auth"; // Use getAuth directly
+import { getAuth as firebaseGetAuth } from "firebase/auth"; // Renamed to avoid conflict
 import type { Firestore } from "firebase/firestore";
-import { getFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
+import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Your web app's Firebase configuration (Hardcoded from user input)
-// WARNING: Hardcoding credentials is not secure for production.
+// Your web app's Firebase configuration (Hardcoded)
+// WARNING: Hardcoding credentials is NOT SECURE for production.
 // Use environment variables for deployed applications.
 const firebaseConfig = {
   apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
@@ -55,8 +55,8 @@ if (!getApps().length) {
 }
 
 try {
-  auth = getAuth(app);
-  db = getFirestore(app);
+  auth = firebaseGetAuth(app);
+  db = firebaseGetFirestore(app);
 } catch (e) {
   console.error("CRITICAL Firebase Error during getAuth() or getFirestore() with hardcoded config:", e);
   throw new Error("Firebase service (Auth/Firestore) initialization failed. Check console for FirebaseError details.");
