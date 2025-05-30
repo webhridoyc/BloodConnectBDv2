@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    // "source": "." tells Firebase to build and serve your Next.js app
+    // using the App Hosting backend defined in apphosting.yaml.
+    // This replaces the "public" and "rewrites" configuration for older Next.js on Cloud Functions.
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    // This section links this hosting site to your App Hosting backend.
+    // Ensure the region matches your App Hosting backend's region (e.g., "us-central1").
+    // This block is often automatically configured when you run `firebase init apphosting`
+    // and link it to your site.
+    "frameworksBackend": {
+      "region": "us-central1" // Update if your backend is in a different region
+    }
+  }
+}

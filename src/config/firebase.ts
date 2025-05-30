@@ -1,8 +1,6 @@
-
 // Explicitly load .env.local for server-side, just in case Next.js internal loading needs a nudge,
 // especially during build or when not using Next.js's built-in loading for all scenarios.
 // However, Next.js should handle .env.local automatically for `process.env`.
-// This line is more for robust debugging visibility if issues persist.
 // import dotenv from 'dotenv';
 // const envConfig = dotenv.config({ path: '.env.local' });
 
@@ -40,34 +38,41 @@ import { getAuth as firebaseGetAuth } from "firebase/auth";
 import type { Firestore} from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Hardcoded Firebase configuration as provided by the user.
-// IMPORTANT: For production, use environment variables set in your hosting provider.
+// Your web app's Firebase configuration.
+// IMPORTANT: For production, use environment variables set in your hosting provider (Firebase App Hosting).
+// For local development, these will be read from your .env.local file if it exists and is correctly formatted.
 const firebaseConfig = {
-  apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
-  authDomain: "bloodconnectbd.firebaseapp.com",
-  projectId: "bloodconnectbd",
-  storageBucket: "bloodconnectbd.firebasestorage.app", // Note: usually ends with .appspot.com
-  messagingSenderId: "87550285201",
-  appId: "1:87550285201:web:25286806971f860d76f630",
-  measurementId: "G-L9XFJLP6C9"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
-// Check for missing critical Firebase configuration values from the hardcoded object
+// Check for missing critical Firebase configuration values from environment variables
 const missingConfigKeys: string[] = [];
-if (!firebaseConfig.apiKey) missingConfigKeys.push('apiKey in firebaseConfig object');
-if (!firebaseConfig.projectId) missingConfigKeys.push('projectId in firebaseConfig object');
-if (!firebaseConfig.authDomain) missingConfigKeys.push('authDomain in firebaseConfig object');
+if (!firebaseConfig.apiKey) missingConfigKeys.push('NEXT_PUBLIC_FIREBASE_API_KEY');
+if (!firebaseConfig.projectId) missingConfigKeys.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+if (!firebaseConfig.authDomain) missingConfigKeys.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+// Add checks for other essential keys if needed, e.g., storageBucket if your app heavily relies on it.
 
 if (missingConfigKeys.length > 0) {
   const errorMessage =
-    `CRITICAL Firebase Config Error: The following Firebase configuration value(s) are missing or invalid in the hardcoded firebaseConfig object: [${missingConfigKeys.join(', ')}]. ` +
-    "Please ensure these values are correctly set in the firebaseConfig object within src/config/firebase.ts. " +
+    `CRITICAL Firebase Config Error: The following Firebase configuration variable(s) are undefined or invalid: [${missingConfigKeys.join(', ')}]. ` +
+    "Please CHECK YOUR SERVER TERMINAL LOGS for the (SERVER-SIDE) values printed just above this error message. " +
+    "Then, ensure these variables are correctly set in your .env.local file (located in the project root directory) for local development, " +
+    "or in your Firebase App Hosting environment configuration for deployment, " +
+    "and that you have RESTARTED your Next.js development server after making changes to .env.local. " +
     "Firebase services cannot be initialized.";
   
   console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   console.error(errorMessage);
-  console.error("Firebase config object being used:", firebaseConfig);
+  console.error("Firebase config object based on current env vars:", firebaseConfig);
   console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  // Throw a clear error to stop initialization if critical config is missing.
+  // This helps in identifying the root cause faster than a generic Firebase error.
   throw new Error(errorMessage);
 }
 
@@ -80,14 +85,14 @@ let persistenceEnabled = false; // Flag to attempt enabling persistence only onc
 if (typeof window !== 'undefined') {
   // Client-side initialization
   if (!getApps().length) {
-    console.log("Firebase: Initializing new app instance (client-side)...");
+    // console.log("Firebase: Initializing new app instance (client-side)...");
     app = initializeApp(firebaseConfig);
     isAnalyticsSupported().then((supported) => {
       if (supported && firebaseConfig.measurementId) {
-        console.log("Firebase: Analytics is supported. Initializing Analytics...");
+        // console.log("Firebase: Analytics is supported. Initializing Analytics...");
         try {
             analyticsInstance = getAnalytics(app);
-            console.log("Firebase: Analytics initialized.");
+            // console.log("Firebase: Analytics initialized.");
         } catch (e) {
             console.warn("Firebase Analytics could not be initialized on new app instance (getAnalytics error).", e);
             analyticsInstance = undefined;
@@ -96,7 +101,7 @@ if (typeof window !== 'undefined') {
         console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized.");
         analyticsInstance = undefined;
       } else {
-        console.log("Firebase: measurementId not found in config, Analytics will not be initialized.");
+        // console.log("Firebase: measurementId not found in config, Analytics will not be initialized.");
         analyticsInstance = undefined;
       }
     }).catch(e => {
@@ -104,15 +109,15 @@ if (typeof window !== 'undefined') {
       analyticsInstance = undefined;
     });
   } else {
-    console.log("Firebase: Getting existing app instance (client-side)...");
+    // console.log("Firebase: Getting existing app instance (client-side)...");
     app = getApp();
     if (!analyticsInstance) { // Check if analytics was already initialized
         isAnalyticsSupported().then((supported) => {
             if (supported && firebaseConfig.measurementId) {
                 try {
-                    console.log("Firebase: Analytics is supported. Attempting to re-initialize Analytics on existing app...");
+                    // console.log("Firebase: Analytics is supported. Attempting to re-initialize Analytics on existing app...");
                     analyticsInstance = getAnalytics(app);
-                    console.log("Firebase: Analytics re-initialized.");
+                    // console.log("Firebase: Analytics re-initialized.");
                 } catch (e) {
                     console.warn("Firebase Analytics could not be re-initialized on existing app (getAnalytics error).", e);
                     analyticsInstance = undefined;
@@ -121,7 +126,7 @@ if (typeof window !== 'undefined') {
                  console.warn("Firebase: Analytics is NOT supported on this browser, or measurementId is missing; Analytics will not be initialized on existing app.");
                  analyticsInstance = undefined;
             } else {
-                console.log("Firebase: measurementId not found in config, Analytics will not be initialized on existing app.");
+                // console.log("Firebase: measurementId not found in config, Analytics will not be initialized on existing app.");
                 analyticsInstance = undefined;
             }
         }).catch(e => {
@@ -134,7 +139,7 @@ if (typeof window !== 'undefined') {
   db = firebaseGetFirestore(app);
 
   if (!persistenceEnabled) {
-    console.log("Firebase Firestore: Attempting to enable offline persistence...");
+    // console.log("Firebase Firestore: Attempting to enable offline persistence...");
     enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
       .then(() => {
         persistenceEnabled = true;
@@ -154,7 +159,7 @@ if (typeof window !== 'undefined') {
 
 } else {
   // Server-side initialization
-  console.log("Firebase: Initializing app instance (server-side)...");
+  // console.log("Firebase: Initializing app instance (server-side)...");
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
   } else {
@@ -163,7 +168,7 @@ if (typeof window !== 'undefined') {
   auth = firebaseGetAuth(app);
   db = firebaseGetFirestore(app);
   analyticsInstance = undefined; // Analytics is not typically used server-side in Next.js like this
-  console.log("Firebase: App initialized (server-side). Firestore persistence is not applicable here.");
+  // console.log("Firebase: App initialized (server-side). Firestore persistence is not applicable here.");
 }
 
 export { app, auth, db, analyticsInstance as analytics };
