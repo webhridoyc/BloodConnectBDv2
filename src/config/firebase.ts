@@ -2,25 +2,52 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth as firebaseGetAuth, type Auth } from "firebase/auth";
-import { 
-  getFirestore as firebaseGetFirestore, 
-  type Firestore, 
+import {
+  getFirestore as firebaseGetFirestore,
+  type Firestore,
   enableIndexedDbPersistence,
-  CACHE_SIZE_UNLIMITED 
-} from "firebase/firestore"; // Added enableIndexedDbPersistence and CACHE_SIZE_UNLIMITED
+  CACHE_SIZE_UNLIMITED
+} from "firebase/firestore";
 import { getAnalytics, type Analytics } from "firebase/analytics";
+
+// Log the values of environment variables for debugging (SERVER-SIDE)
+// These logs will appear in your Next.js development server terminal.
+console.log('Firebase Config (SERVER-SIDE): NEXT_PUBLIC_FIREBASE_API_KEY =', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+console.log('Firebase Config (SERVER-SIDE): NEXT_PUBLIC_FIREBASE_PROJECT_ID =', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
-  authDomain: "bloodconnectbd.firebaseapp.com",
-  projectId: "bloodconnectbd",
-  storageBucket: "bloodconnectbd.firebasestorage.app",
-  messagingSenderId: "87550285201",
-  appId: "1:87550285201:web:25286806971f860d76f630",
-  measurementId: "G-L9XFJLP6C9"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
+
+// Check for missing critical Firebase configuration
+const missingConfigKeys: string[] = [];
+if (!firebaseConfig.apiKey) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+if (!firebaseConfig.projectId) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+// Add checks for other essential keys if necessary, e.g., authDomain
+if (!firebaseConfig.authDomain) missingConfigKeys.push("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
+
+
+if (missingConfigKeys.length > 0) {
+  const errorMessage =
+    `CRITICAL Firebase Config Error: The following Firebase configuration variable(s) are undefined or invalid: [${missingConfigKeys.join(", ")}]. ` +
+    "Please CHECK YOUR SERVER TERMINAL LOGS for the (SERVER-SIDE) values printed just above this error message. " +
+    "Then, ensure these variables are correctly set in your .env.local file (located in the project root directory) for local development, " +
+    "or in your Firebase App Hosting environment configuration for deployment, " +
+    "and that you have RESTARTED your Next.js development server after making changes to .env.local. " +
+    "Firebase services cannot be initialized.";
+  console.error(errorMessage);
+  // Throw a clear error to stop initialization if critical config is missing.
+  throw new Error(errorMessage);
+}
+
 
 let app: FirebaseApp;
 let auth: Auth;
@@ -32,7 +59,13 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
     try {
-      analytics = getAnalytics(app);
+      // Check if measurementId is provided before initializing Analytics
+      if (firebaseConfig.measurementId) {
+        analytics = getAnalytics(app);
+      } else {
+        console.warn("Firebase Analytics measurementId is missing; Analytics will not be initialized.");
+        analytics = undefined;
+      }
     } catch (e) {
       console.warn("Firebase Analytics could not be initialized.", e);
       analytics = undefined;
@@ -49,9 +82,7 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
         .catch((err) => {
           if (err.code == 'failed-precondition') {
             console.warn("Firestore offline persistence failed (failed-precondition): Usually means multiple tabs are open or persistence was already enabled. Offline capabilities might be limited or rely on existing state.");
-            // This can happen if persistence is already enabled in another tab.
-            // Firestore might still work with a more limited in-memory cache or the existing persisted state.
-             persistenceEnabled = true; // Assume it's effectively enabled if this specific error occurs
+            persistenceEnabled = true; // Assume it's effectively enabled if this specific error occurs
           } else if (err.code == 'unimplemented') {
             console.warn("Firestore offline persistence failed (unimplemented): The current browser does not support all of the features required to enable persistence. Offline capabilities will be unavailable.");
           } else {
@@ -61,7 +92,7 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
     }
   } else {
     app = getApp();
-    if (!analytics) {
+    if (!analytics && firebaseConfig.measurementId) { // Check if analytics was already initialized and if measurementId exists
         try {
             analytics = getAnalytics(app);
         } catch(e) {
@@ -69,20 +100,21 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
             analytics = undefined;
         }
     }
-    // If app already exists, db should also exist.
-    // Persistence should have been enabled on the first initialization.
-    db = firebaseGetFirestore(app); 
+    db = firebaseGetFirestore(app);
   }
   auth = firebaseGetAuth(app);
 } else {
-  // Server-side initialization
+  // Server-side initialization (e.g., for Next.js API routes or server components that might need auth/db)
+  // Note: Offline persistence and Analytics are typically client-side features.
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
   } else {
     app = getApp();
   }
   auth = firebaseGetAuth(app);
-  db = firebaseGetFirestore(app); // No offline persistence on server-side
+  db = firebaseGetFirestore(app);
+  // Analytics is not typically initialized on the server-side for Next.js apps using App Router
+  analytics = undefined;
 }
 
 export { app, auth, db, analytics };
