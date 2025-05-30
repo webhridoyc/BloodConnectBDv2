@@ -2,7 +2,12 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth as firebaseGetAuth, type Auth } from "firebase/auth";
-import { getFirestore as firebaseGetFirestore, type Firestore } from "firebase/firestore";
+import { 
+  getFirestore as firebaseGetFirestore, 
+  type Firestore, 
+  enableIndexedDbPersistence,
+  CACHE_SIZE_UNLIMITED 
+} from "firebase/firestore"; // Added enableIndexedDbPersistence and CACHE_SIZE_UNLIMITED
 import { getAnalytics, type Analytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
@@ -17,28 +22,45 @@ const firebaseConfig = {
   measurementId: "G-L9XFJLP6C9"
 };
 
-// Initialize Firebase
-// It's important that app, auth, and db are declared before being exported.
-// The getApps().length check prevents re-initializing the app on hot reloads.
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
-let analytics: Analytics | undefined; // Analytics can be optional
+let analytics: Analytics | undefined;
+let persistenceEnabled = false; // Flag to ensure persistence is enabled only once
 
 if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on the client-side
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
-    // Check if Analytics is supported by the browser before initializing
-    // This is a good practice, though getAnalytics often handles this gracefully
     try {
       analytics = getAnalytics(app);
     } catch (e) {
       console.warn("Firebase Analytics could not be initialized.", e);
       analytics = undefined;
     }
+    // Initialize Firestore first
+    db = firebaseGetFirestore(app);
+    // Attempt to enable offline persistence
+    if (!persistenceEnabled) {
+      enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
+        .then(() => {
+          persistenceEnabled = true;
+          console.log("Firebase Firestore offline persistence enabled successfully.");
+        })
+        .catch((err) => {
+          if (err.code == 'failed-precondition') {
+            console.warn("Firestore offline persistence failed (failed-precondition): Usually means multiple tabs are open or persistence was already enabled. Offline capabilities might be limited or rely on existing state.");
+            // This can happen if persistence is already enabled in another tab.
+            // Firestore might still work with a more limited in-memory cache or the existing persisted state.
+             persistenceEnabled = true; // Assume it's effectively enabled if this specific error occurs
+          } else if (err.code == 'unimplemented') {
+            console.warn("Firestore offline persistence failed (unimplemented): The current browser does not support all of the features required to enable persistence. Offline capabilities will be unavailable.");
+          } else {
+            console.error("Firestore offline persistence failed with an unexpected error: ", err);
+          }
+        });
+    }
   } else {
     app = getApp();
-    // If app was already initialized, try to get analytics instance if not already set
     if (!analytics) {
         try {
             analytics = getAnalytics(app);
@@ -47,26 +69,20 @@ if (typeof window !== 'undefined') { // Ensure Firebase is initialized only on t
             analytics = undefined;
         }
     }
+    // If app already exists, db should also exist.
+    // Persistence should have been enabled on the first initialization.
+    db = firebaseGetFirestore(app); 
   }
   auth = firebaseGetAuth(app);
-  db = firebaseGetFirestore(app);
 } else {
-  // Server-side initialization or mock if needed for SSR without client Firebase
-  // For this app structure, client-side initialization is primary.
-  // If using Firebase Admin SDK on server, that would be separate.
-  // For now, provide stubs or handle differently if SSR needs them before hydration.
-  // However, since AuthProvider is client-side, these might not be strictly needed on server
-  // before client hydration kicks in.
-  // To avoid errors if these are imported in server components that don't use them:
+  // Server-side initialization
   if (!getApps().length) {
-    app = initializeApp(firebaseConfig); // Initialize for server context if no app exists
+    app = initializeApp(firebaseConfig);
   } else {
     app = getApp();
   }
-  auth = firebaseGetAuth(app); // Can be initialized on server too, but client interaction is key
-  db = firebaseGetFirestore(app);
+  auth = firebaseGetAuth(app);
+  db = firebaseGetFirestore(app); // No offline persistence on server-side
 }
 
-
 export { app, auth, db, analytics };
-
