@@ -1,4 +1,5 @@
 
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplet, Users, HeartHandshake, Search, Building, UserPlus } from "lucide-react";
@@ -8,8 +9,14 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <div className="space-y-12">
-      <section className="text-center py-12 md:py-20 bg-gradient-to-br from-primary/20 via-background to-background rounded-xl shadow-lg">
-        <div className="container mx-auto px-4">
+      {/* Hero Section */}
+      <section
+        className="hero-section text-center py-12 md:py-20 rounded-xl shadow-lg relative overflow-hidden"
+        style={{
+          // Background image is now handled by the ::before pseudo-element
+        }}
+      >
+        <div className="container mx-auto px-4 relative z-10"> {/* Add relative and z-10 to keep content above background */}
           <Droplet className="mx-auto h-16 w-16 text-primary mb-6 animate-pulse animate-fade-in-up" />
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-fade-in-up">
             Welcome to <span className="text-primary">BloodLink BD</span>
@@ -30,6 +37,22 @@ export default function HomePage() {
             </Button>
           </div>
         </div>
+        {/* Styles for the ::before pseudo-element */}
+        <style jsx>{`
+          .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://i.ibb.co/BVRcJYYb/fotor-ai-20250528121737.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(5px);
+            z-index: 0; /* Ensure the pseudo-element is behind the content */
+          }
+        `}</style>
       </section>
 
       <section className="py-12">

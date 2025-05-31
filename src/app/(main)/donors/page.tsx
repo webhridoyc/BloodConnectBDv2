@@ -51,9 +51,13 @@ export default function DonorsPage() {
           }
         });
         setDonors(fetchedDonors);
-      } catch (err) {
+      } catch (err: any) { // Catch block updated
         console.error("Error fetching donors:", err);
-        setError("Failed to load donor information. Please try again later.");
+        if (err.code === 'permission-denied') {
+          setError("ডাটাবেস থেকে তথ্য আনার অনুমতি নেই। অনুগ্রহ করে আপনার লগইন স্ট্যাটাস পরীক্ষা করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।");
+        } else {
+          setError("ডোনারদের তথ্য লোড করা যায়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -67,7 +71,7 @@ export default function DonorsPage() {
       return (
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
           <LoadingSpinner size={48} />
-          <p className="text-muted-foreground">Loading donors...</p>
+          <p className="text-muted-foreground">ডোনারদের তথ্য লোড হচ্ছে...</p>
         </div>
       );
     }
@@ -76,7 +80,7 @@ export default function DonorsPage() {
       return (
         <div className="text-center py-16 text-destructive">
           <AlertTriangle className="mx-auto h-16 w-16 mb-6" />
-          <h2 className="text-2xl font-semibold mb-2">Error Loading Donors</h2>
+          <h2 className="text-2xl font-semibold mb-2">ত্রুটি</h2>
           <p>{error}</p>
         </div>
       );
@@ -86,15 +90,15 @@ export default function DonorsPage() {
       return (
         <div className="text-center py-16">
           <Users className="mx-auto h-16 w-16 text-muted-foreground mb-6" />
-          <h2 className="text-2xl font-semibold text-foreground mb-2">No Donors Found</h2>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">কোনো ডোনার পাওয়া যায়নি</h2>
           <p className="text-muted-foreground">
-            There are currently no registered donors available in the system.
+            বর্তমানে সিস্টেমে কোনো রেজিস্টার্ড ডোনার নেই।
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Please check back later, or if you are eligible, consider becoming a donor.
+            অনুগ্রহ করে কিছুক্ষণ পর আবার দেখুন, অথবা আপনি যদি রক্তদানে সক্ষম হন, তাহলে ডোনার হিসেবে রেজিস্টার করুন।
           </p>
           <Button asChild className="mt-6">
-            <a href="/donate">Become a Donor</a>
+            <a href="/donate">ডোনার হোন</a>
           </Button>
         </div>
       );
@@ -114,11 +118,11 @@ export default function DonorsPage() {
             <CardContent className="space-y-3 flex-grow">
               <div className="flex items-center text-muted-foreground">
                 <Droplet className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
-                <span>Blood Group: <span className="font-semibold text-foreground">{donor.bloodGroup}</span></span>
+                <span>রক্তের গ্রুপ: <span className="font-semibold text-foreground">{donor.bloodGroup}</span></span>
               </div>
               <div className="flex items-center text-muted-foreground">
                 <MapPin className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
-                <span>Location: <span className="font-semibold text-foreground">{donor.location}</span></span>
+                <span>অবস্থান: <span className="font-semibold text-foreground">{donor.location}</span></span>
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Phone className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
@@ -127,7 +131,7 @@ export default function DonorsPage() {
             </CardContent>
             <CardFooter>
               <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                Request Contact (Soon)
+                যোগাযোগের জন্য অনুরোধ (শীঘ্রই আসছে)
               </Button>
             </CardFooter>
           </Card>
@@ -140,10 +144,10 @@ export default function DonorsPage() {
     <div className="space-y-8">
       <section className="text-center py-8 animate-fade-in-up">
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Find a <span className="text-primary">Donor</span>
+          খুঁজুন <span className="text-primary">ডোনার</span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Browse our network of selfless individuals ready to save lives. 
+          আমাদের জীবন রক্ষাকারী স্বেচ্ছাসেবকদের নেটওয়ার্কে ব্রাউজ করুন।
         </p>
       </section>
       <section className="animate-fade-in-up-delayed-1">
@@ -152,3 +156,4 @@ export default function DonorsPage() {
     </div>
   );
 }
+
