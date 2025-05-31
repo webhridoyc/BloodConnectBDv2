@@ -16,10 +16,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4 relative z-10">
           <Droplet className="mx-auto h-16 w-16 text-primary mb-6 animate-pulse animate-fade-in-up" />
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-fade-in-up">
-            Welcome to <span className="text-primary">BloodLink BD</span>
+            Become a Hero — <span className="text-primary">Donate Blood, Save Lives</span>
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-white animate-fade-in-up-delayed-1">
-            Connecting hearts, saving lives. Find blood donors and request blood in Bangladesh with ease and efficiency.
+            Your decision to donate blood can give someone another chance at life. At BloodLink BD, we connect real heroes like you with those in urgent need. Join our growing community of donors and make a life-changing impact — one drop at a time.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in-up-delayed-2">
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-transform hover:scale-105">
@@ -29,7 +29,7 @@ export default function HomePage() {
             </Button>
             <Button size="lg" variant="outline" asChild className="shadow-md transition-transform hover:scale-105 border-primary text-primary hover:bg-primary/10">
               <Link href="/donate">
-                <UserPlus className="mr-2 h-5 w-5" /> Become a Donor
+                <UserPlus className="mr-2 h-5 w-5" /> Become a Donor Today
               </Link>
             </Button>
           </div>
@@ -75,7 +75,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* New Section: Find a Lifesaver */}
+      {/* Find a Lifesaver Section */}
       <section className="py-12 bg-card rounded-xl shadow-lg">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="animate-fade-in-up">
@@ -237,24 +237,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Join Our Community Section (Existing, slight style adjustments may be needed) */}
+      {/* Updated "Become a Hero" Section (previously Join Our Community) */}
       <section className="py-12 bg-card rounded-xl shadow-lg">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="animate-fade-in-up">
-            <h2 className="text-3xl font-semibold mb-4 text-foreground">Join Our <span className="text-primary">Life-Saving Network</span></h2>
-            <p className="text-muted-foreground mb-6 text-lg">
-              Be a part of a compassionate community dedicated to making a difference. Every drop counts, and every donor is a hero. 
-              Together, we can bring hope and healing across Bangladesh.
+            <h2 className="text-3xl font-semibold mb-4 text-foreground">
+              Become a Hero — <span className="text-primary">Donate Blood, Save Lives</span>
+            </h2>
+            <p className="text-muted-foreground mb-3 text-lg">
+              Your decision to donate blood can give someone another chance at life. At BloodLink BD, we connect real heroes like you with those in urgent need. Join our growing community of donors and make a life-changing impact — one drop at a time.
+            </p>
+            <p className="text-muted-foreground mb-6 text-lg font-semibold">
+              Ready to save a life?
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-transform hover:scale-105">
-                <Link href="/auth/register">
-                  Get Started Now
+                <Link href="/donate">
+                  <UserPlus className="mr-2 h-5 w-5" /> Sign up now and become a donor today
                 </Link>
               </Button>
                <Button size="lg" variant="outline" asChild className="shadow-md transition-transform hover:scale-105">
                 <Link href="/donors">
-                  Find Available Donors
+                  <Search className="mr-2 h-5 w-5" /> Find Available Donors
                 </Link>
               </Button>
             </div>
