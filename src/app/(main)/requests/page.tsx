@@ -51,7 +51,7 @@ export default function RequestsPage() {
           }
         });
         setRequests(fetchedRequests);
-      } catch (err: any) { // Catch block updated
+      } catch (err: any) { 
         console.error("Error fetching blood requests:", err);
         if (err.code === 'permission-denied') {
           setError("ডাটাবেস থেকে রক্তের অনুরোধগুলো আনার অনুমতি নেই। অনুগ্রহ করে আপনার লগইন স্ট্যাটাস পরীক্ষা করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।");
@@ -73,7 +73,7 @@ export default function RequestsPage() {
     fetchRequests();
   }, []);
 
-  const getUrgencyColor = (urgency: "low" | "medium" | "high") = > {
+  const getUrgencyColor = (urgency: "low" | "medium" | "high") => {
     switch (urgency) {
       case "high":
         return "text-red-500";
