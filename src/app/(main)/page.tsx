@@ -103,7 +103,7 @@ export default function HomePage() {
           </div>
           <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-md animate-fade-in-up-delayed-1">
             <Image 
-              src="https://placehold.co/600x400.png" 
+              src="https://i.ibb.co/MynhWcch/Chat-GPT-Image-Jun-1-2025-12-20-16-AM.png" 
               alt="Hand holding a blood drop being passed to another hand" 
               layout="fill" 
               objectFit="cover"
@@ -283,5 +283,4 @@ export default function HomePage() {
     </div>
   );
 }
-
     
