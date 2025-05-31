@@ -2,7 +2,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Droplet, Users, HeartHandshake, Search, Building, UserPlus, TrendingUp, ShieldCheck, Gift, BookOpen } from "lucide-react";
+import { Droplet, Users, HeartHandshake, Search, Building, UserPlus, TrendingUp, ShieldCheck, Gift, BookOpen, LifeBuoy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -75,8 +75,46 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* New Section: Find a Lifesaver */}
       <section className="py-12 bg-card rounded-xl shadow-lg">
+        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
+          <div className="animate-fade-in-up">
+            <h2 className="text-3xl font-semibold mb-4 text-foreground">
+              Find a <span className="text-primary">Lifesaver</span> in Minutes
+            </h2>
+            <p className="text-muted-foreground mb-3 text-lg">
+              Need blood urgently? We’re here to help. Use our smart donor-matching system to quickly connect with verified blood donors near you. Whether it’s for an emergency or scheduled transfusion, you’re just a few clicks away from saving a life.
+            </p>
+            <p className="text-muted-foreground mb-6 text-lg">
+              Post a request or search now — help is closer than you think.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-transform hover:scale-105">
+                <Link href="/request-blood">
+                  <HeartHandshake className="mr-2 h-5 w-5" /> Post a Request
+                </Link>
+              </Button>
+               <Button size="lg" variant="outline" asChild className="shadow-md transition-transform hover:scale-105">
+                <Link href="/donors">
+                  <Search className="mr-2 h-5 w-5" /> Search Donors
+                </Link>
+              </Button>
+            </div>
+          </div>
+          <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-md animate-fade-in-up-delayed-1">
+            <Image 
+              src="https://placehold.co/600x400.png" 
+              alt="Hand holding a blood drop being passed to another hand" 
+              layout="fill" 
+              objectFit="cover"
+              data-ai-hint="blood donation hands"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-semibold text-center mb-10 text-foreground animate-fade-in-up">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
