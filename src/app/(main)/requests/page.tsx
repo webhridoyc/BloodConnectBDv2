@@ -175,8 +175,8 @@ export default function RequestsPage() {
               )}
             </CardContent>
             <CardFooter>
-              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled>
-                সাহায্য করতে চান (শীঘ্রই আসছে)
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                যোগাযোগ করুন (শীঘ্রই)
               </Button>
             </CardFooter>
           </Card>
