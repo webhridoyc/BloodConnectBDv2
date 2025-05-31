@@ -118,39 +118,45 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-semibold text-center mb-10 text-foreground animate-fade-in-up">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center animate-fade-in-up-delayed-1">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-primary/10 rounded-full">
+            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-1 flex flex-col">
+              <CardHeader className="items-center">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
                   <UserPlus className="h-10 w-10 text-primary" />
                 </div>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">1. Register</h3>
-              <p className="text-muted-foreground">
-                Sign up as a donor or create an account to request blood. It's quick and easy.
-              </p>
-            </div>
-            <div className="text-center animate-fade-in-up-delayed-2">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-primary/10 rounded-full">
+                <CardTitle className="text-xl">1. Register</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground">
+                  Sign up as a donor or create an account to request blood. It&apos;s quick and easy.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-2 flex flex-col">
+              <CardHeader className="items-center">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
                   <Search className="h-10 w-10 text-primary" />
                 </div>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">2. Find or Request</h3>
-              <p className="text-muted-foreground">
-                Search for available donors by blood group and location, or post a blood request.
-              </p>
-            </div>
-            <div className="text-center animate-fade-in-up-delayed-3">
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-primary/10 rounded-full">
+                <CardTitle className="text-xl">2. Find or Request</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground">
+                  Search for available donors by blood group and location, or post a blood request.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 animate-fade-in-up-delayed-3 flex flex-col">
+              <CardHeader className="items-center">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
                   <HeartHandshake className="h-10 w-10 text-primary" />
                 </div>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">3. Connect & Save</h3>
-              <p className="text-muted-foreground">
-                Connect with potential donors or requesters. Your contribution can save a life.
-              </p>
-            </div>
+                <CardTitle className="text-xl">3. Connect & Save</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-muted-foreground">
+                  Connect with potential donors or requesters. Your contribution can save a life.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
