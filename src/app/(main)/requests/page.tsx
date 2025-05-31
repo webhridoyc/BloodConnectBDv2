@@ -22,38 +22,47 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<RequestDisplayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [firebaseConsoleLink, setFirebaseConsoleLink] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
       setIsLoading(true);
       setError(null);
+      setFirebaseConsoleLink(null);
       try {
         const requestsRef = collection(db, "bloodRequests");
+        // Query for open requests, ordered by most recent
         const q = query(requestsRef, where("status", "==", "open"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedRequests: RequestDisplayData[] = [];
         querySnapshot.forEach((doc) => {
           const requestData = doc.data() as Omit<BloodRequest, 'id' | 'createdAt'> & { createdAt: Timestamp };
+          // Ensure all required fields are present
           if (doc.id && requestData && requestData.createdAt) {
             fetchedRequests.push({
               ...requestData,
               id: doc.id,
-              createdAt: requestData.createdAt.toDate().toLocaleDateString(),
+              createdAt: requestData.createdAt.toDate().toLocaleDateString(), // Format for display
               relativeTime: formatDistanceToNowStrict(requestData.createdAt.toDate(), { addSuffix: true }),
             });
           } else {
+            // Log if a document is skipped due to missing critical data
             console.warn("Skipping request document due to missing data, ID, or createdAt field:", doc.id, requestData);
           }
         });
         setRequests(fetchedRequests);
-      } catch (err: any) {
+      } catch (err: any) { // Catch block updated
         console.error("Error fetching blood requests:", err);
         if (err.code === 'permission-denied') {
           setError("ডাটাবেস থেকে রক্তের অনুরোধগুলো আনার অনুমতি নেই। অনুগ্রহ করে আপনার লগইন স্ট্যাটাস পরীক্ষা করুন অথবা অ্যাডমিনের সাথে যোগাযোগ করুন।");
-        } else if (err.code === 'failed-precondition' && err.message.includes('The query requires an index')) {
-          setError("ডাটাবেসের একটি সূচক (index) প্রয়োজন যা এখনও তৈরি হয়নি। অনুগ্রহ করে Firebase Console-এ গিয়ে Firestore-এর জন্য প্রয়োজনীয় কম্পোজিট ইনডেক্স তৈরি করুন। Firestore error message: " + err.message);
+        } else if (err.code === 'failed-precondition' && err.message && err.message.includes('query requires an index')) {
+          const linkRegex = /(https:\/\/[^\s]+)/;
+          const match = err.message.match(linkRegex);
+          const link = match ? match[0] : null;
+          setFirebaseConsoleLink(link);
+          setError("এই কোয়েরিটির জন্য Firestore-এ একটি ইনডেক্স প্রয়োজন। অনুগ্রহ করে আপনার Firebase Console-এ গিয়ে প্রয়োজনীয় কম্পোজিট ইনডেক্স তৈরি করুন। বিস্তারিত তথ্যের জন্য আপনার টার্মিনাল বা সার্ভার লগ চেক করুন অথবা নিচের লিঙ্কে যান (যদি থাকে)। Firestore error message: " + err.message);
         }
-        else {
+         else {
           setError("রক্তের অনুরোধগুলো লোড করা যায়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
         }
       } finally {
@@ -64,12 +73,12 @@ export default function RequestsPage() {
     fetchRequests();
   }, []);
 
-  const getUrgencyColor = (urgency: "low" | "medium" | "high") => {
+  const getUrgencyColor = (urgency: "low" | "medium" | "high") = > {
     switch (urgency) {
       case "high":
         return "text-red-500";
       case "medium":
-        return "text-yellow-500"; // Corrected from orange to yellow for better standard theme compatibility
+        return "text-yellow-500"; 
       case "low":
         return "text-green-500";
       default:
@@ -93,6 +102,16 @@ export default function RequestsPage() {
           <AlertTriangle className="mx-auto h-16 w-16 mb-6" />
           <h2 className="text-2xl font-semibold mb-2">ত্রুটি</h2>
           <p className="whitespace-pre-wrap">{error}</p>
+          {firebaseConsoleLink && (
+            <a
+              href={firebaseConsoleLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              ইনডেক্স তৈরি করুন
+            </a>
+          )}
         </div>
       );
     }
@@ -184,3 +203,4 @@ export default function RequestsPage() {
     </div>
   );
 }
+
