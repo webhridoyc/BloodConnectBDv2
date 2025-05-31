@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Droplet, LogIn, LogOut, User, UserPlus, HeartHandshake, Building, Search, Bot } from "lucide-react";
+import { Droplet, LogIn, LogOut, User, UserPlus, HeartHandshake, Building, Search, Bot, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -54,6 +55,7 @@ export function Navbar() {
         <Logo />
         <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
           <NavLink href="/donors" icon={<Search size={16}/>}>Find Donors</NavLink>
+          <NavLink href="/requests" icon={<ClipboardList size={16}/>}>View Requests</NavLink>
           <NavLink href="/request-blood" icon={<HeartHandshake size={16}/>}>Request Blood</NavLink>
           <NavLink href="/hospitals" icon={<Building size={16}/>}>Hospitals</NavLink>
           {user && <NavLink href="/ai-matcher" icon={<Bot size={16}/>}>AI Matcher</NavLink>}
