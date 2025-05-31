@@ -9,79 +9,86 @@ import { getAuth as firebaseGetAuth } from "firebase/auth"; // Renamed to avoid 
 import type { Firestore } from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// --- START: Firebase Configuration ---
-// Your web app's Firebase configuration (Hardcoded for local development troubleshooting)
-// WARNING: Hardcoding credentials is NOT SECURE for production.
-// For deployment, you MUST use environment variables set in your hosting provider.
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
-  authDomain: "bloodconnectbd.firebaseapp.com",
-  projectId: "bloodconnectbd",
-  storageBucket: "bloodconnectbd.firebasestorage.app",
-  messagingSenderId: "87550285201",
-  appId: "1:87550285201:web:25286806971f860d76f630",
-  measurementId: "G-L9XFJLP6C9"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
-console.log("--- Firebase Config (src/config/firebase.ts) ---");
-console.log("Attempting to use HARDCODED firebaseConfig. Ensure these values are correct for your project.");
-console.log("API Key to be used:", firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + "..." : "MISSING/INVALID in hardcoded config");
-console.log("Project ID to be used:", firebaseConfig.projectId);
-console.log("Auth Domain to be used:", firebaseConfig.authDomain);
+// Log startup information
+console.log("--- Firebase Config Initialization (src/config/firebase.ts) ---");
+const executionEnv = typeof window === 'undefined' ? 'Server-side/Build-time' : 'Client-side';
+console.log(`Environment: ${executionEnv}`);
+console.log(`Attempting to use environment variables for Firebase config.`);
+console.log(`Project ID (from env): ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'MISSING or not public'}`);
+console.log(`Auth Domain (from env): ${process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'MISSING or not public'}`);
+if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    console.error("NEXT_PUBLIC_FIREBASE_API_KEY is MISSING, empty, or not prefixed with NEXT_PUBLIC_ in the environment.");
+}
 console.log("-------------------------------------------------");
+
+// Check for required environment variables before initializing Firebase
+// These keys correspond to the firebaseConfig object above.
+const essentialFirebaseConfigKeys: Array<keyof typeof firebaseConfig> = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId',
+];
+
+for (const key of essentialFirebaseConfigKeys) {
+  if (!firebaseConfig[key]) {
+    // Construct the expected environment variable name
+    const envVarName = `NEXT_PUBLIC_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`;
+    const errorMessage = `CRITICAL Firebase Config Error: Firebase config key "${key}" (expected from env var ${envVarName}) is missing or empty. Ensure all NEXT_PUBLIC_FIREBASE_ environment variables are set correctly in your project environment (e.g., Vercel/Firebase Studio settings or .env.local for local development).`;
+    console.error(errorMessage);
+    // This error will halt execution if a required var is missing.
+    throw new Error(errorMessage);
+  }
+}
 
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 let analyticsInstance: Analytics | undefined;
-let persistenceEnabled = false; // Flag to attempt enabling persistence only once
+let persistenceEnabled = false;
 
 try {
   if (!getApps().length) {
-    console.log("Firebase: No apps initialized yet. Calling initializeApp...");
     app = initializeApp(firebaseConfig);
-    console.log("Firebase app initialized successfully with hardcoded config using initializeApp.");
+    console.log("Firebase app initialized successfully using environment variables.");
   } else {
-    console.log("Firebase: App already initialized. Calling getApp().");
     app = getApp();
-    // Optionally, verify if the existing app's config matches the hardcoded one, though this can be complex.
-    // Forcing re-initialization if config differs might be an option but can lead to other issues.
-    // For now, assume getApp() returns the correctly configured app if it exists.
     console.log("Using existing Firebase app instance.");
   }
 } catch (e: any) {
-  const criticalErrorMessage = `CRITICAL Firebase Error during app initialization (initializeApp or getApp) with hardcoded config. 
-Provided config: ${JSON.stringify(firebaseConfig)}. 
-Error: ${e.message}
-Stack: ${e.stack}`;
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  const criticalErrorMessage = `CRITICAL Firebase Error during app initialization (initializeApp). This often means the Firebase config values (API Key, Project ID, etc.) are incorrect or missing. Please verify your environment variables. Original Error: ${e.message}`;
   console.error(criticalErrorMessage);
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  // This error will be thrown, potentially causing an Internal Server Error if on server-side.
   throw new Error(criticalErrorMessage);
 }
 
-// Initialize Auth and Firestore services
-// This block will also run on both server and client.
 try {
   auth = firebaseGetAuth(app);
   db = firebaseGetFirestore(app);
   console.log("Firebase Auth and Firestore services obtained successfully.");
 } catch (e: any) {
-  const serviceInitErrorMessage = `CRITICAL Firebase Error during getAuth() or getFirestore() with hardcoded config. 
-Error: ${e.message}
-Stack: ${e.stack}`;
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  // This is the error you are seeing. It means 'app' was initialized with an invalid API key.
+  const serviceInitErrorMessage = `CRITICAL Firebase Error during getAuth() or getFirestore(). Error: ${e.message}. This usually indicates an invalid API Key or other misconfiguration in the Firebase project setup or environment variables.`;
   console.error(serviceInitErrorMessage);
-  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   throw new Error(serviceInitErrorMessage);
 }
 
 
 // Client-side specific initializations
 if (typeof window !== 'undefined') {
-  console.log("Firebase config: Running on client-side. Attempting Analytics and Persistence setup.");
-  // Initialize Analytics only on the client and if supported
+  console.log("Firebase config: Client-side. Attempting Analytics and Persistence setup.");
   isAnalyticsSupported().then((supported) => {
     if (supported && firebaseConfig.measurementId) {
       try {
@@ -103,7 +110,6 @@ if (typeof window !== 'undefined') {
     analyticsInstance = undefined;
   });
 
-  // Enable Firestore offline persistence only on the client and only once
   if (!persistenceEnabled) {
     enableIndexedDbPersistence(db, { cacheSizeBytes: CACHE_SIZE_UNLIMITED })
       .then(() => {
@@ -113,8 +119,7 @@ if (typeof window !== 'undefined') {
       .catch((err: any) => {
         if (err.code === 'failed-precondition') {
           console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition on client). Usually means multiple tabs are open or persistence already enabled. Assuming active elsewhere.");
-          // It's okay if it's already enabled by another tab.
-          persistenceEnabled = true; 
+          persistenceEnabled = true;
         } else if (err.code === 'unimplemented') {
           console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented on client). Browser doesn't support required features.");
         } else {
@@ -123,9 +128,8 @@ if (typeof window !== 'undefined') {
       });
   }
 } else {
-  // Server-side: No analytics, no client-side persistence
   analyticsInstance = undefined;
-  console.log("Firebase config: Running on server-side. Analytics and client-side persistence setup skipped.");
+  console.log("Firebase config: Server-side/Build-time. Analytics and client-side persistence setup skipped.");
 }
 
 export { app, auth, db, analyticsInstance as analytics };
