@@ -208,6 +208,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Stories of Hope Section */}
+      <section className="py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-semibold mb-6 text-foreground animate-fade-in-up">
+            Stories of <span className="text-primary">Hope</span>
+          </h2>
+          <Card className="shadow-lg animate-fade-in-up-delayed-1">
+            <CardHeader>
+              <div className="flex items-center justify-center mb-4">
+                  <div className="p-3 bg-accent/30 rounded-full">
+                     <BookOpen className="h-10 w-10 text-accent-foreground" />
+                  </div>
+              </div>
+              <CardTitle>Coming Soon: Inspiring Journeys</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground max-w-xl mx-auto">
+                We will soon feature heartwarming stories from donors and recipients whose lives have been touched by the BloodLink BD community. These testimonials will highlight the real-world impact of your generosity and the importance of blood donation. Stay tuned!
+              </p>
+            </CardContent>
+             <CardFooter className="justify-center">
+                <Button variant="ghost" disabled className="text-primary">
+                    Share Your Story (Feature Coming Soon)
+                </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </section>
+
       {/* Join Our Community Section (Existing, slight style adjustments may be needed) */}
       <section className="py-12 bg-card rounded-xl shadow-lg">
         <div className="container mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
@@ -239,35 +268,6 @@ export default function HomePage() {
               data-ai-hint="community diverse people"
             />
           </div>
-        </div>
-      </section>
-
-      {/* Stories of Hope Section (Placeholder) */}
-      <section className="py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-semibold mb-6 text-foreground animate-fade-in-up">
-            Stories of <span className="text-primary">Hope</span>
-          </h2>
-          <Card className="shadow-lg animate-fade-in-up-delayed-1">
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                  <div className="p-3 bg-accent/30 rounded-full">
-                     <BookOpen className="h-10 w-10 text-accent-foreground" />
-                  </div>
-              </div>
-              <CardTitle>Coming Soon: Inspiring Journeys</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                We will soon feature heartwarming stories from donors and recipients whose lives have been touched by the BloodLink BD community. These testimonials will highlight the real-world impact of your generosity and the importance of blood donation. Stay tuned!
-              </p>
-            </CardContent>
-             <CardFooter className="justify-center">
-                <Button variant="ghost" disabled className="text-primary">
-                    Share Your Story (Feature Coming Soon)
-                </Button>
-            </CardFooter>
-          </Card>
         </div>
       </section>
 
