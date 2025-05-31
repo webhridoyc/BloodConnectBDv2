@@ -21,7 +21,7 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground animate-fade-in-up">
             Welcome to <span className="text-primary">BloodLink BD</span>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg text-muted-foreground animate-fade-in-up-delayed-1">
+          <p className="mt-6 max-w-2xl mx-auto text-lg text-white animate-fade-in-up-delayed-1">
             Connecting hearts, saving lives. Find blood donors and request blood in Bangladesh with ease and efficiency.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 animate-fade-in-up-delayed-2">
