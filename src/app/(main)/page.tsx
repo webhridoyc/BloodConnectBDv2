@@ -129,11 +129,10 @@ export default function HomePage() {
           </div>
           <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-md animate-fade-in-up-delayed-3">
             <Image 
-              src="https://placehold.co/600x400.png" 
-              alt="Community of blood donors" 
+              src="https://i.ibb.co/MDSwLLVX/Generated-Image-May-28-2025-10-48-AM.jpg" 
+              alt="Community of blood donors and medical professionals" 
               layout="fill" 
               objectFit="cover"
-              data-ai-hint="community people helping" 
             />
           </div>
         </div>
