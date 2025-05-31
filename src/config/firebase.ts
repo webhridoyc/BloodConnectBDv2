@@ -9,51 +9,29 @@ import { getAuth as firebaseGetAuth } from "firebase/auth"; // Renamed to avoid 
 import type { Firestore } from "firebase/firestore";
 import { getFirestore as firebaseGetFirestore, enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Firebase configuration using environment variables
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  apiKey: "AIzaSyD4GmyGHApoFuZZV48btnyLLaAaLKrryhA",
+  authDomain: "bloodconnectbd.firebaseapp.com",
+  projectId: "bloodconnectbd",
+  storageBucket: "bloodconnectbd.firebasestorage.app",
+  messagingSenderId: "87550285201",
+  appId: "1:87550285201:web:25286806971f860d76f630",
+  measurementId: "G-L9XFJLP6C9"
 };
 
 // Log startup information
 console.log("--- Firebase Config Initialization (src/config/firebase.ts) ---");
 const executionEnv = typeof window === 'undefined' ? 'Server-side/Build-time' : 'Client-side';
 console.log(`Environment: ${executionEnv}`);
-console.log(`Attempting to use environment variables for Firebase config.`);
-console.log(`Project ID (from env): ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'MISSING or not public'}`);
-console.log(`Auth Domain (from env): ${process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'MISSING or not public'}`);
-if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-    console.error("NEXT_PUBLIC_FIREBASE_API_KEY is MISSING, empty, or not prefixed with NEXT_PUBLIC_ in the environment.");
-}
+console.log("Attempting to use HARDCODED firebaseConfig. Ensure these values are correct for your project.");
+console.log("API Key to be used:", firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + "..." : "MISSING/INVALID in hardcoded config");
+console.log("Project ID to be used:", firebaseConfig.projectId);
+console.log("Auth Domain to be used:", firebaseConfig.authDomain);
 console.log("-------------------------------------------------");
 
-// Check for required environment variables before initializing Firebase
-// These keys correspond to the firebaseConfig object above.
-const essentialFirebaseConfigKeys: Array<keyof typeof firebaseConfig> = [
-  'apiKey',
-  'authDomain',
-  'projectId',
-  'storageBucket',
-  'messagingSenderId',
-  'appId',
-];
-
-for (const key of essentialFirebaseConfigKeys) {
-  if (!firebaseConfig[key]) {
-    // Construct the expected environment variable name
-    const envVarName = `NEXT_PUBLIC_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`;
-    const errorMessage = `CRITICAL Firebase Config Error: Firebase config key "${key}" (expected from env var ${envVarName}) is missing or empty. Ensure all NEXT_PUBLIC_FIREBASE_ environment variables are set correctly in your project environment (e.g., Vercel/Firebase Studio settings or .env.local for local development).`;
-    console.error(errorMessage);
-    // This error will halt execution if a required var is missing.
-    throw new Error(errorMessage);
-  }
-}
-
+// Initialize Firebase
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
@@ -63,14 +41,18 @@ let persistenceEnabled = false;
 try {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
-    console.log("Firebase app initialized successfully using environment variables.");
+    console.log("Firebase app initialized successfully with hardcoded config using initializeApp.");
   } else {
     app = getApp();
-    console.log("Using existing Firebase app instance.");
+    console.log("Using existing Firebase app instance with hardcoded config.");
   }
 } catch (e: any) {
-  const criticalErrorMessage = `CRITICAL Firebase Error during app initialization (initializeApp). This often means the Firebase config values (API Key, Project ID, etc.) are incorrect or missing. Please verify your environment variables. Original Error: ${e.message}`;
+  const criticalErrorMessage = `CRITICAL Firebase Error during app initialization (initializeApp or getApp) with hardcoded config. \nProvided config: ${JSON.stringify(firebaseConfig)}. \nError: ${e.message}\nStack: ${e.stack}`;
+  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   console.error(criticalErrorMessage);
+  console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  // For critical errors during Firebase App initialization, re-throwing is appropriate
+  // as the app cannot function without a valid Firebase app instance.
   throw new Error(criticalErrorMessage);
 }
 
@@ -79,10 +61,14 @@ try {
   db = firebaseGetFirestore(app);
   console.log("Firebase Auth and Firestore services obtained successfully.");
 } catch (e: any) {
-  // This is the error you are seeing. It means 'app' was initialized with an invalid API key.
-  const serviceInitErrorMessage = `CRITICAL Firebase Error during getAuth() or getFirestore(). Error: ${e.message}. This usually indicates an invalid API Key or other misconfiguration in the Firebase project setup or environment variables.`;
-  console.error(serviceInitErrorMessage);
-  throw new Error(serviceInitErrorMessage);
+    // This can happen if initializeApp succeeded (e.g. config object structure was fine)
+    // but the specific services fail to initialize, often due to project setup issues
+    // or if the API key is valid but doesn't have permissions for certain services.
+    const serviceInitErrorMessage = `CRITICAL Firebase Error during getAuth() or getFirestore() with hardcoded config. \nError: ${e.message}\nStack: ${e.stack}`;
+    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.error(serviceInitErrorMessage);
+    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    throw new Error(serviceInitErrorMessage);
 }
 
 
@@ -119,7 +105,7 @@ if (typeof window !== 'undefined') {
       .catch((err: any) => {
         if (err.code === 'failed-precondition') {
           console.warn("Firebase Firestore: Offline persistence FAILED (failed-precondition on client). Usually means multiple tabs are open or persistence already enabled. Assuming active elsewhere.");
-          persistenceEnabled = true;
+          persistenceEnabled = true; // Still set to true as it might be enabled in another tab.
         } else if (err.code === 'unimplemented') {
           console.warn("Firebase Firestore: Offline persistence FAILED (unimplemented on client). Browser doesn't support required features.");
         } else {
@@ -128,7 +114,7 @@ if (typeof window !== 'undefined') {
       });
   }
 } else {
-  analyticsInstance = undefined;
+  analyticsInstance = undefined; // Ensure analyticsInstance is undefined on server
   console.log("Firebase config: Server-side/Build-time. Analytics and client-side persistence setup skipped.");
 }
 
